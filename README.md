@@ -388,3 +388,4 @@ docker-compose.yml           Full local stack
 | [docs/DESIGN.md](docs/DESIGN.md) / [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) | UI research, NHS patterns used, WCAG checklist |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Operating and supporting the service: health checks, logs, failed emails, common faults |
 | [docs/adr/](docs/adr) | Architecture decision records |
+| [docs/DECISIONS-QA.md](docs/DECISIONS-QA.md) | Likely reviewer questions about the decisions, with the reasoning |
