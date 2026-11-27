@@ -1,31 +1,32 @@
-# Location data
+# Exercise data
 
-`locations.csv` holds the Region → Site → Building hierarchy that the request form uses.
+`exercise-data.xlsx` is the workbook supplied with the exercise ("Practical Exercise Data - Applications Developer B6"), committed unchanged. It has two sheets:
 
-## Using the supplied exercise data
+| Sheet | Columns | Imported as |
+|---|---|---|
+| **Buildings** | Region, Site, Building | The Region → Site → Building hierarchy for the request form: 11 regions, 22 sites, 44 buildings |
+| **Users** | Name, Email Address, Role, Password | 14 accounts: 4 administrators ("Admin") and 10 requesters. The email address is the username. |
 
-The exercise comes with a location data file ("Practical Exercise Data - Application Developer B6").
-To use it:
+## How it's loaded
 
-1. Save it in this folder as `locations.csv` or `locations.xlsx`.
-2. If it is `.xlsx`, set `Seed__LocationsFile=/app/data/locations.xlsx` for the `api` service in `docker-compose.yml`.
-3. Reset the database so it is imported again: `docker compose down -v && docker compose up --build`.
+On start-up (Docker Compose sets `Seed__ImportLocations` and `Seed__ImportUsers` to `true`), the API:
 
-Or import it into a running system without a reset (new items are added; nothing is removed):
+1. Imports the Buildings sheet if the Regions table is empty.
+2. Imports the Users sheet, adding any account that doesn't exist yet. **Passwords are hashed with PBKDF2 before they're stored. The plain text is never saved or logged.**
+3. Creates 6 sample requests (`Seed__CreateDemoData`) for the first two requesters alphabetically (Alex Evans and Casey Hughes), decided by an administrator, so every screen has data.
+
+To import into a running system without resetting it (existing rows are left alone):
 
 ```bash
-docker compose run --rm api import-locations /app/data/locations.xlsx
+docker compose run --rm api import-locations /app/data/exercise-data.xlsx
+docker compose run --rm api import-users /app/data/exercise-data.xlsx
 ```
 
-## Accepted format
+To start again from the file: `docker compose down -v && docker compose up --build`.
 
-- CSV (UTF-8, with or without BOM) or Excel `.xlsx` (first worksheet).
-- A header row with a region, site and building column. Matching ignores case, spaces and
-  punctuation, so `Region`, `Region Name`, `site_name`, `Building Name` all work.
-- Extra columns are ignored. Blank or incomplete rows are skipped. Duplicates are merged.
+## Accepted formats
 
-## The file in this repository
-
-The current `locations.csv` is **sample data** so the app runs straight away. Site names are
-based on public information about MPFT locations; building names are made up. Replace it with the
-supplied file for a real demonstration.
+- Excel `.xlsx`: worksheets are found by name (`Buildings`/`Locations`/`Sites` and `Users`/`Accounts`/`Staff`). For locations, the first sheet is used if none of those names match.
+- CSV (UTF-8, with or without BOM) with the same columns.
+- Column names are matched ignoring case, spaces and punctuation, so `Email Address`, `email_address` and `Email` all work. Extra columns are ignored.
+- Blank rows are skipped. Rows with missing values, an invalid email or an unknown role are **reported (with the row number) and skipped**, never guessed. Duplicates are merged.

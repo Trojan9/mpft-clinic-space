@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { signIn } from "./helpers";
+import { signIn, USERS } from "./helpers";
 
 // WCAG 2.2 A and AA, checked in a real browser so colour contrast is included.
 async function expectAccessible(page: Page) {
@@ -17,7 +17,7 @@ test.describe("Accessibility (axe-core, WCAG 2.2 AA)", () => {
   });
 
   test("requester pages", async ({ page }) => {
-    await signIn(page, "sarah.khan");
+    await signIn(page, USERS.requester);
     await expectAccessible(page);
     await page.goto("/requests/new");
     await expectAccessible(page);
@@ -26,7 +26,7 @@ test.describe("Accessibility (axe-core, WCAG 2.2 AA)", () => {
   });
 
   test("administrator pages", async ({ page }) => {
-    await signIn(page, "olivia.bennett");
+    await signIn(page, USERS.admin);
     await expectAccessible(page);
     await page.getByRole("button", { name: /All/ }).click();
     await page.getByRole("table").getByRole("link").first().click();

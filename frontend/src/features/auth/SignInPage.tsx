@@ -92,6 +92,7 @@ export function SignInPage() {
           <TextInput
             id="username"
             label="Username"
+            hint="Your work email address"
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
@@ -122,19 +123,17 @@ export function SignInPage() {
         {showDemoAccounts ? (
           <section aria-labelledby="demo-accounts" className="border-2 border-dashed border-nhs-mid-grey bg-white p-4">
             <h2 id="demo-accounts" className="nhs-heading-s mb-2">
-              Demo accounts (local development only)
+              Test accounts from the exercise data (local development only)
             </h2>
-            <p className="nhs-body-s mb-2">
-              Password for every account: <code className="bg-nhs-light-grey px-1">ClinicSpace-Demo-2026</code>
-            </p>
-            <ul className="nhs-body-s m-0 list-disc pl-5">
+            <ul className="nhs-body-s m-0 list-disc space-y-1 pl-5">
               <li>
-                <code>sarah.khan</code> or <code>james.wright</code>: requester
+                Requester: <code>alex.evans@example.nhs.uk</code> with password <code>Password123!</code>
               </li>
               <li>
-                <code>olivia.bennett</code> or <code>daniel.okafor</code>: administrator
+                Administrator: <code>pat.jones@example.nhs.uk</code> with password <code>AdminPass!23</code>
               </li>
             </ul>
+            <p className="nhs-body-s mt-2 mb-0">All 14 accounts in the supplied Users sheet can sign in.</p>
           </section>
         ) : null}
       </Page>

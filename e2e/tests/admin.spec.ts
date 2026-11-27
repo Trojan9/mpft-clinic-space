@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { MAILPIT, signIn, submitRequest, waitForEmail } from "./helpers";
+import { MAILPIT, signIn, submitRequest, USERS, waitForEmail } from "./helpers";
 
 test.describe("Administrator journey", () => {
   test("finds a submitted request, accepts it, and the requester is emailed and sees Accepted", async ({ browser, request }) => {
     const requesterPage = await (await browser.newContext()).newPage();
-    await signIn(requesterPage, "sarah.khan");
+    await signIn(requesterPage, USERS.requester);
     const reference = await submitRequest(requesterPage, { costCode: "E2E-ACCEPT" });
 
     const adminPage = await (await browser.newContext()).newPage();
-    await signIn(adminPage, "olivia.bennett");
+    await signIn(adminPage, USERS.admin);
     await expect(adminPage.getByRole("heading", { name: /clinical space requests/i })).toBeVisible();
 
     await adminPage.getByRole("searchbox", { name: "Search" }).fill(reference);
@@ -22,7 +22,7 @@ test.describe("Administrator journey", () => {
     await expect(adminPage.getByRole("heading", { name: `Request ${reference} accepted` })).toBeVisible();
 
     const email = await waitForEmail(request, `${reference} has been accepted`);
-    expect(email.To[0]!.Address).toBe("sarah.khan@clinicspace.test");
+    expect(email.To[0]!.Address).toBe("alex.evans@example.nhs.uk");
     const full = await (await request.get(`${MAILPIT}/api/v1/message/${email.ID}`)).json();
     expect(full.Text).toContain("Room 2. Collect the key from reception.");
 
@@ -32,11 +32,11 @@ test.describe("Administrator journey", () => {
 
   test("must give a reason to reject, and the requester sees it", async ({ browser, request }) => {
     const requesterPage = await (await browser.newContext()).newPage();
-    await signIn(requesterPage, "james.wright");
+    await signIn(requesterPage, USERS.otherRequester);
     const reference = await submitRequest(requesterPage, { costCode: "E2E-REJECT" });
 
     const adminPage = await (await browser.newContext()).newPage();
-    await signIn(adminPage, "daniel.okafor");
+    await signIn(adminPage, USERS.otherAdmin);
     await adminPage.getByRole("searchbox", { name: "Search" }).fill(reference);
     await adminPage.getByRole("button", { name: "Apply" }).click();
     await adminPage.getByRole("link", { name: reference }).click();
@@ -56,7 +56,7 @@ test.describe("Administrator journey", () => {
   });
 
   test("a requester cannot reach the administrator pages", async ({ page }) => {
-    await signIn(page, "sarah.khan");
+    await signIn(page, USERS.requester);
     await page.goto("/admin/requests");
     await expect(page).toHaveURL(/\/requests$/);
   });

@@ -3,6 +3,7 @@ using ClinicSpace.Infrastructure.Email;
 using ClinicSpace.Infrastructure.Locations;
 using ClinicSpace.Infrastructure.Persistence;
 using ClinicSpace.Infrastructure.Seeding;
+using ClinicSpace.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,7 @@ public static class DependencyInjection
         services.AddHostedService(sp => sp.GetRequiredService<EmailOutboxDispatcher>());
 
         services.AddScoped<LocationImporter>();
+        services.AddScoped<UserImporter>();
         services.AddScoped<DatabaseInitializer>();
         return services;
     }
