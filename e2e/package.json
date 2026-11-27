@@ -1,0 +1,17 @@
+{
+  "name": "mpft-clinic-space-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "End-to-end tests and screenshot capture, run against the Docker Compose stack.",
+  "scripts": {
+    "test": "playwright test",
+    "screenshots": "node scripts/capture-screenshots.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.1",
+    "@playwright/test": "1.65.1",
+    "@types/node": "22.20.7",
+    "typescript": "5.9.3"
+  }
+}
