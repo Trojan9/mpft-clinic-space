@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ClinicSpace.Api/ClinicSpace.Api.csproj" />
+    <Project Path="src/ClinicSpace.Application/ClinicSpace.Application.csproj" />
+    <Project Path="src/ClinicSpace.Domain/ClinicSpace.Domain.csproj" />
+    <Project Path="src/ClinicSpace.Infrastructure/ClinicSpace.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ClinicSpace.IntegrationTests/ClinicSpace.IntegrationTests.csproj" />
+    <Project Path="tests/ClinicSpace.UnitTests/ClinicSpace.UnitTests.csproj" />
+  </Folder>
+</Solution>

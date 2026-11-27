@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (.NET build, unit and integration tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Restore
+        run: dotnet restore ClinicSpace.slnx
+      - name: Build (warnings are errors)
+        run: dotnet build ClinicSpace.slnx -c Release --no-restore
+      - name: Unit tests
+        run: dotnet test tests/ClinicSpace.UnitTests -c Release --no-build --logger "trx;LogFileName=unit.trx" --collect "XPlat Code Coverage" --results-directory ../test-results/backend
+      - name: Integration tests (real SQL Server 2022 via Testcontainers)
+        run: dotnet test tests/ClinicSpace.IntegrationTests -c Release --no-build --logger "trx;LogFileName=integration.trx" --collect "XPlat Code Coverage" --results-directory ../test-results/backend
+      - name: Check for vulnerable NuGet packages
+        run: |
+          dotnet list ClinicSpace.slnx package --vulnerable --include-transitive | tee vulnerable.txt
+          ! grep -q -E "Critical|High" vulnerable.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: test-results/backend
