@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { useLocation } from "react-router";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
 
 interface PageProps {
@@ -12,16 +13,20 @@ interface PageProps {
 }
 
 /**
- * Standard page: sets the document title and moves focus to the h1 when the page opens, so
+ * Standard page: sets the document title and, after in-app navigation, moves focus to the h1 so
  * screen reader users know the page has changed (single-page apps do not do this by default).
+ * On the first page load focus is left alone, so the first Tab still reaches the skip link.
  */
 export function Page({ title, caption, hasError = false, before, headingAside, children }: PageProps) {
   useDocumentTitle(title, hasError);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const location = useLocation();
+  // React Router gives the very first entry the key "default"; every navigation after that has its own key.
+  const isInitialLoad = location.key === "default";
 
   useEffect(() => {
-    headingRef.current?.focus({ preventScroll: true });
-  }, [title]);
+    if (!isInitialLoad) headingRef.current?.focus({ preventScroll: true });
+  }, [title, isInitialLoad]);
 
   return (
     <>
