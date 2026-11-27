@@ -1,0 +1,84 @@
+# MPFT Clinic Space: local development stack.
+#   docker compose up --build
+#   App:        http://localhost:8080
+#   Email:      http://localhost:8025  (Mailpit catches every email the app sends)
+#   API docs:   http://localhost:8080/api/docs
+# All credentials below are for local development only.
+
+name: mpft-clinic-space
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    # SQL Server has no arm64 image; on Apple Silicon, Docker Desktop runs it through Rosetta.
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Dev_Only_Passw0rd!}
+    ports:
+      - "127.0.0.1:1433:1433" # Localhost only, for SSMS or Azure Data Studio.
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  mail:
+    image: axllent/mailpit:v1.34.0
+    ports:
+      - "127.0.0.1:8025:8025" # Web inbox for every email the app sends.
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ClinicSpace: "Server=db,1433;Database=ClinicSpace;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Dev_Only_Passw0rd!};TrustServerCertificate=True;Encrypt=True"
+      Security__RequireSecureCookies: "false" # Local HTTP only. Always true in a real environment.
+      Security__TrustForwardedHeaders: "true" # The API is only reachable through the web container.
+      Email__Mode: Smtp
+      Email__SmtpHost: mail
+      Email__SmtpPort: "1025"
+      Email__SmtpSecurity: None
+      Notifications__PublicBaseUrl: http://localhost:8080
+      Seed__ApplyMigrations: "true"
+      Seed__ImportLocations: "true"
+      Seed__LocationsFile: /app/data/locations.csv
+      Seed__CreateDemoData: "true"
+      Seed__DemoUserPassword: ${DEMO_USER_PASSWORD:-ClinicSpace-Demo-2026}
+      Security__SignInRequestsPerMinute: ${SIGN_IN_REQUESTS_PER_MINUTE:-10}
+      DataProtection__KeysDirectory: /app/keys
+    volumes:
+      - ./data:/app/data:ro
+      - dpkeys:/app/keys
+    depends_on:
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+    healthcheck:
+      # The runtime image has no curl, so use bash's /dev/tcp to call the readiness endpoint.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q Healthy <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_SHOW_DEMO_ACCOUNTS: "true"
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  sqldata:
+  dpkeys:
