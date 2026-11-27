@@ -71,3 +71,46 @@ jobs:
         with:
           name: frontend-coverage
           path: frontend/coverage
+
+  e2e:
+    name: End-to-end (Playwright against Docker Compose)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    env:
+      SIGN_IN_REQUESTS_PER_MINUTE: "1000" # The suite signs in many times a minute.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the full stack
+        run: docker compose up -d --build --wait --wait-timeout 300
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run end-to-end and accessibility tests
+        working-directory: e2e
+        run: npx playwright test
+      - name: Capture screenshots of every journey
+        if: success()
+        working-directory: e2e
+        run: npm run screenshots
+      - name: Container logs
+        if: failure()
+        run: docker compose logs --no-color > compose-logs.txt; tail -200 compose-logs.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-report-and-screenshots
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            docs/screenshots
+            compose-logs.txt
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v
