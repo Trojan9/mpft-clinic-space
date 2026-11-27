@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens from the NHS digital service manual (service-manual.nhs.uk/design-system/styles/colour).
+ * Every text/background pair used here meets WCAG 2.2 AA contrast (4.5:1 for body text).
+ */
+@theme {
+  --font-sans: Arial, "Helvetica Neue", Helvetica, sans-serif;
+
+  --color-nhs-blue: #005eb8;
+  --color-nhs-dark-blue: #003087;
+  --color-nhs-black: #212b32;
+  --color-nhs-dark-grey: #4c6272;
+  --color-nhs-mid-grey: #aeb7bd;
+  --color-nhs-pale-grey: #d8dde0;
+  --color-nhs-light-grey: #f0f4f5;
+  --color-nhs-white: #ffffff;
+  --color-nhs-green: #007f3b;
+  --color-nhs-dark-green: #00401e;
+  --color-nhs-red: #d5281b;
+  --color-nhs-dark-red: #8a1538;
+  --color-nhs-yellow: #ffeb3b;
+  --color-nhs-warm-yellow: #ffb81c;
+  --color-nhs-link-hover: #7c2855;
+
+  /* Tag colours (text on tinted background), as used by the NHS tag component. */
+  --color-tag-blue-bg: #d6e5f4;
+  --color-tag-blue-text: #002f5c;
+  --color-tag-green-bg: #cce5d8;
+  --color-tag-green-text: #004b23;
+  --color-tag-red-bg: #f7d4d1;
+  --color-tag-red-text: #6b140e;
+  --color-tag-grey-bg: #dbe0e3;
+  --color-tag-grey-text: #263139;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-nhs-light-grey font-sans text-nhs-black antialiased;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 40.0625em) {
+    body {
+      font-size: 1.1875rem; /* 19px, the NHS body size on larger screens */
+      line-height: 1.47;
+    }
+  }
+
+  a {
+    @apply text-nhs-blue underline underline-offset-2;
+  }
+
+  a:visited {
+    color: #330072;
+  }
+
+  a:hover {
+    @apply text-nhs-link-hover;
+    text-decoration-thickness: 3px;
+  }
+
+  /* NHS focus state: yellow background with a dark underline, visible on any background. */
+  a:focus-visible {
+    @apply bg-nhs-yellow text-nhs-black no-underline outline-none;
+    box-shadow: 0 -2px #ffeb3b, 0 4px #212b32;
+  }
+
+  :where(input, select, textarea):focus-visible {
+    outline: 4px solid #ffeb3b;
+    outline-offset: 0;
+    box-shadow: inset 0 0 0 2px #212b32;
+  }
+
+  button:focus-visible {
+    outline: 4px solid transparent;
+    background-color: #ffeb3b !important;
+    color: #212b32 !important;
+    box-shadow: 0 4px 0 #212b32 !important;
+  }
+
+  h1:focus,
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .nhs-heading-xl {
+    @apply mb-6 text-[2rem] leading-tight font-bold sm:mb-10 sm:text-5xl;
+  }
+  .nhs-heading-l {
+    @apply mb-4 text-[1.5rem] leading-tight font-bold sm:mb-6 sm:text-[2rem];
+  }
+  .nhs-heading-m {
+    @apply mb-4 text-[1.25rem] leading-snug font-bold sm:text-[1.5rem];
+  }
+  .nhs-heading-s {
+    @apply mb-4 text-[1.125rem] leading-snug font-bold sm:text-[1.1875rem];
+  }
+  .nhs-caption-l {
+    @apply mb-1 block text-[1.125rem] text-nhs-dark-grey sm:text-[1.5rem];
+  }
+  .nhs-body-s {
+    @apply text-[0.875rem] sm:text-base;
+  }
+  .nhs-hint {
+    @apply mb-4 block text-nhs-dark-grey;
+  }
+  .nhs-input {
+    @apply block w-full rounded-none border-2 border-nhs-black bg-white px-2 py-1.5 text-base sm:text-[1.1875rem];
+    min-height: 40px;
+  }
+  .nhs-input-error {
+    @apply border-nhs-red;
+  }
+  .nhs-error-message {
+    @apply mb-4 block font-bold text-nhs-red;
+  }
+  .nhs-form-group-error {
+    @apply border-l-4 border-nhs-red pl-4;
+  }
+  .nhs-card {
+    @apply mb-8 border border-nhs-pale-grey bg-white p-5 sm:p-8;
+  }
+  .sr-only-focusable:not(:focus):not(:active) {
+    @apply sr-only;
+  }
+}
