@@ -22,7 +22,7 @@ const namePattern = /^\p{L}[\p{L}\p{M} .'’-]*$/u;
 const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 const yesNo = (message: string) =>
-  z.enum(["yes", "no"], { errorMap: () => ({ message }) });
+  z.enum(["yes", "no"], { error: message });
 
 export const requestFieldSchema = z.object({
   costCode: z
@@ -61,7 +61,7 @@ export const requestFieldSchema = z.object({
   additionalRequirements: z
     .string()
     .max(RULES.notesMax, `Additional requirements must be ${RULES.notesMax} characters or fewer`),
-  acceptTerms: z.literal(true, { errorMap: () => ({ message: "Confirm that you accept the terms and conditions" }) }),
+  acceptTerms: z.literal(true, { error: "Confirm that you accept the terms and conditions" }),
 });
 
 export type RequestFormValues = z.infer<typeof requestFieldSchema>;

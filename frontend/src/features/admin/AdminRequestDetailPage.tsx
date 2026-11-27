@@ -23,12 +23,12 @@ const NOTES_MAX = 1000;
 
 const decisionSchema = z
   .object({
-    decision: z.enum(["Accept", "Reject"], { errorMap: () => ({ message: "Select whether to accept or reject the request" }) }),
+    decision: z.enum(["Accept", "Reject"], { error: "Select whether to accept or reject the request" }),
     notes: z.string().max(NOTES_MAX, `Notes must be ${NOTES_MAX} characters or fewer`),
   })
   .superRefine((value, ctx) => {
     if (value.decision === "Reject" && !value.notes.trim()) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["notes"], message: "Enter a reason for rejecting the request" });
+      ctx.addIssue({ code: "custom", path: ["notes"], message: "Enter a reason for rejecting the request" });
     }
   });
 type DecisionForm = z.infer<typeof decisionSchema>;
