@@ -69,8 +69,17 @@ It records unambiguous instants. Showing times in UK time is a presentation conc
 **Why `IsActive` on locations instead of deleting them?**
 Old requests must keep pointing at real buildings. Deactivating a building hides it from new requests without breaking history.
 
-**How did you handle the supplied location data?**
-An importer reads CSV or Excel, matches column names loosely, skips blank rows and merges duplicates. It only ever adds, so it's safe to run again. The repo ships with sample data in the same shape.
+**How did you handle the supplied data?**
+The workbook has two sheets, and both are imported at start-up. **Buildings** (Region, Site, Building) fills the location hierarchy: 11 regions, 22 sites, 44 buildings. **Users** (Name, Email Address, Role, Password) creates the 14 accounts. The importers read CSV or Excel, match column names loosely, report and skip bad rows instead of guessing, merge duplicates, and only ever add, so they're safe to run again. A command-line option runs them against a live database.
+
+**Why is the email address the username?**
+The Users sheet has no username column, and staff already know their work email. It also matches how sign-in works with Microsoft Entra ID.
+
+**The supplied file contains plain-text passwords. How did you handle that?**
+They're test credentials provided for the exercise, so the workbook is committed as supplied, so reviewers can sign in straight away. On import each password is hashed with PBKDF2, and the plain text is never stored or logged. In production there'd be no password file at all: accounts and roles would come from Entra ID.
+
+**How do roles in the file map to the app?**
+"Admin" (or "Administrator") becomes Administrator, and "Requester" becomes Requester. Any other value is rejected with a row-numbered message rather than defaulting to a role, because defaulting could accidentally give someone admin rights.
 
 ---
 

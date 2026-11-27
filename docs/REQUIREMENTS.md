@@ -19,7 +19,8 @@ Every requirement in the exercise brief, where it's implemented, and how it's pr
 | R11 | Role or administrator indicator on the user | `Users.Role` (CHECK constraint) | `DATA-MODEL.md` |
 | **Data** ||||
 | R12 | Users and roles | `User`, `UserRole` | |
-| R13 | Regions, sites and buildings from the supplied data | `Region`/`Site`/`Building`, `LocationImporter` (CSV/XLSX) | `LocationFileReaderTests`, `Location_lookups_follow…` |
+| R13 | Regions, sites and buildings from the supplied data | `Region`/`Site`/`Building`; `LocationImporter` reads the workbook's Buildings sheet (11 regions, 22 sites, 44 buildings) | `LocationFileReaderTests`, `UserFileReaderTests.Reads_both_sheets…`, `Location_lookups_follow…` |
+| R13a | Supplied user accounts | `UserImporter` reads the Users sheet (14 accounts), maps Admin → Administrator, hashes passwords | `UserFileReaderTests`, e2e sign-ins with the supplied accounts |
 | R14 | Clinical space requests | `ClinicalSpaceRequest` | `ClinicalSpaceRequestTests` |
 | R15 | Statuses Submitted, Accepted, Rejected | `RequestStatus` + CHECK constraint | `ClinicalSpaceRequestTests` |
 | R16 | Sink, couch, optional free text | `SinkRequired`, `ClinicalCouchRequired`, `AdditionalRequirementsNotes` | validator tests |
