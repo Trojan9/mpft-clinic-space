@@ -38,5 +38,6 @@ The exercise workbook (`data/exercise-data.xlsx`) contains plain-text passwords 
 | Secrets | Development defaults in Compose, clearly labelled | Azure Key Vault + managed identity. No SQL `sa` account; a least-privilege SQL user (db_datareader/db_datawriter plus a separate migration identity). |
 | Data protection keys | File volume | Azure Blob Storage + Key Vault key encryption, shared across instances. |
 | Rate limiting | In-memory, per instance | Gateway or WAF level (Front Door / API Management) for multi-instance deployments. |
+| Development tools | Mailpit (8025) and SQL Server (1433) have no app sign-in and listen on `127.0.0.1` only | Not deployed. Emails go through the Trust's SMTP relay (NHSmail) over TLS with credentials; the database is reached only from the app's network. |
 | Penetration test and DPIA | Not done | Before go-live, with Information Governance and the security team. |
 | Audit log retention | In the database | Ship logs to the SIEM; protect audit tables from modification. |

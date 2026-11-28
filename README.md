@@ -52,6 +52,8 @@ The first start takes a few minutes while the images build and SQL Server initia
 
 On start-up the API applies the database migrations, imports the **supplied exercise data** (locations and user accounts from `data/exercise-data.xlsx`), and creates a few sample requests so every screen has something to show.
 
+Mailpit has no sign-in on purpose. It's a local development tool standing in for a real mail server, it only listens on `127.0.0.1`, and it isn't part of the app. In production the app sends through the Trust's mail relay (NHSmail), and people read their emails in Outlook. The sign-in and role checks the brief asks for apply to the app itself.
+
 To stop it: `docker compose down`. To reset everything, including the database: `docker compose down -v`.
 
 > **Apple Silicon (M1/M2/M3) Macs:** Microsoft publishes SQL Server images for x86-64 only. Compose sets `platform: linux/amd64`, and Docker Desktop runs it through Rosetta. Turn on *Settings → General → Use Rosetta for x86_64/amd64 emulation* if SQL Server fails to start.

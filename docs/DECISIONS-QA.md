@@ -103,6 +103,9 @@ The server takes the requester's identity from the session. Any name or email in
 **How would this work with Microsoft Entra ID?**
 Replace the cookie sign-in with OpenID Connect (`Microsoft.Identity.Web`) and map Entra app roles to the existing Requester and Administrator policies. Controllers, services and the domain don't change. Local passwords and lockout are removed.
 
+**Why doesn't the Mailpit inbox need a sign-in?**
+Mailpit isn't part of the app. It's a local stand-in for a mail server, so reviewers can see the emails without a real mailbox. Docker only exposes it on `127.0.0.1`, so nothing else on the network can reach it. In production it isn't deployed: the app sends through the Trust's relay (NHSmail) over TLS, and each person reads their own emails in Outlook. The sign-in and role rules in the brief cover the app, and the app enforces them.
+
 **What would need to change before going live?**
 TLS everywhere with secure cookies, secrets in Key Vault, a least-privilege SQL login, shared data-protection keys, a DPIA, a penetration test and a gateway-level rate limit. The production checklist is in [SECURITY.md](SECURITY.md).
 
