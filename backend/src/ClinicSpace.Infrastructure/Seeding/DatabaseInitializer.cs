@@ -2,6 +2,7 @@ using ClinicSpace.Domain.Requests;
 using ClinicSpace.Domain.Users;
 using ClinicSpace.Infrastructure.Locations;
 using ClinicSpace.Infrastructure.Persistence;
+using ClinicSpace.Infrastructure.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,17 +11,20 @@ using Microsoft.Extensions.Options;
 namespace ClinicSpace.Infrastructure.Seeding;
 
 /// <summary>
-/// Runs at start-up: applies migrations, imports locations and creates demo data, each only if
-/// switched on in configuration. Every step checks what already exists, so restarts are safe.
+/// Runs at start-up: applies migrations, imports locations and users from the supplied data file,
+/// and creates sample requests, each only if switched on in configuration. Every step checks what
+/// already exists, so restarts are safe.
 /// </summary>
 public sealed class DatabaseInitializer(
     AppDbContext db,
     LocationImporter importer,
+    UserImporter userImporter,
     IPasswordHasher<User> passwordHasher,
     TimeProvider clock,
     IOptions<SeedOptions> options,
     ILogger<DatabaseInitializer> logger)
 {
+    /// <summary>Fallback accounts, used only when no users file is imported (for example in automated tests).</summary>
     public static readonly (string Username, string Name, string Email, UserRole Role)[] DemoUsers =
     [
         ("sarah.khan", "Sarah Khan", "sarah.khan@clinicspace.test", UserRole.Requester),
@@ -47,6 +51,24 @@ public sealed class DatabaseInitializer(
             else
             {
                 logger.LogWarning("Location file {File} not found; no locations imported", settings.LocationsFile);
+            }
+        }
+
+        if (settings.ImportUsers)
+        {
+            if (File.Exists(settings.UsersFile))
+            {
+                var (users, problems) = UserFileReader.Read(settings.UsersFile);
+                foreach (var problem in problems)
+                {
+                    logger.LogWarning("Users file: {Problem}", problem);
+                }
+
+                await userImporter.ImportAsync(users, problems.Count, cancellationToken);
+            }
+            else
+            {
+                logger.LogWarning("Users file {File} not found; no users imported", settings.UsersFile);
             }
         }
 
@@ -121,10 +143,18 @@ public sealed class DatabaseInitializer(
             return;
         }
 
-        var users = await db.Users.ToDictionaryAsync(u => u.Username, cancellationToken);
-        var sarah = users["sarah.khan"];
-        var james = users["james.wright"];
-        var olivia = users["olivia.bennett"];
+        // Use whichever accounts exist: the supplied users, or the fallback demo users.
+        var requesters = await db.Users.Where(u => u.Role == UserRole.Requester && u.IsActive).OrderBy(u => u.CreatedAtUtc).ThenBy(u => u.DisplayName).Take(2).ToListAsync(cancellationToken);
+        var admin = await db.Users.Where(u => u.Role == UserRole.Administrator && u.IsActive).OrderBy(u => u.CreatedAtUtc).ThenBy(u => u.DisplayName).FirstOrDefaultAsync(cancellationToken);
+        if (requesters.Count < 2 || admin is null)
+        {
+            logger.LogWarning("Sample requests need two requesters and an administrator; none created");
+            return;
+        }
+
+        var sarah = requesters[0];
+        var james = requesters[1];
+        var olivia = admin;
 
         var now = clock.GetUtcNow();
         var morning = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero).AddHours(9);

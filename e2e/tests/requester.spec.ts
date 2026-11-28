@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { fillRequestForm, signIn, submitRequest, waitForEmail } from "./helpers";
+import { fillRequestForm, signIn, submitRequest, USERS, waitForEmail } from "./helpers";
 
 test.describe("Requester journey", () => {
   test("signs in, creates a request and sees it as Submitted in My requests", async ({ page, request }) => {
-    await signIn(page, "sarah.khan");
+    await signIn(page, USERS.requester);
     await expect(page.getByRole("heading", { name: "My requests" })).toBeVisible();
 
     await page.getByRole("link", { name: "Request a clinical space" }).click();
-    await expect(page.getByTestId("requester-name")).toHaveText("Sarah Khan");
-    await expect(page.getByTestId("requester-email")).toHaveText("sarah.khan@clinicspace.test");
+    await expect(page.getByTestId("requester-name")).toHaveText("Alex Evans");
+    await expect(page.getByTestId("requester-email")).toHaveText("alex.evans@example.nhs.uk");
 
     await fillRequestForm(page, { costCode: "e2e-1001", notes: "Wheelchair access" });
     await page.getByRole("button", { name: "Continue" }).click();
@@ -26,7 +26,7 @@ test.describe("Requester journey", () => {
   });
 
   test("shows clear errors and keeps answers when the form is invalid", async ({ page }) => {
-    await signIn(page, "sarah.khan");
+    await signIn(page, USERS.requester);
     await page.goto("/requests/new");
     await page.getByLabel("Cost code").fill("bad code!");
     await page.getByRole("button", { name: "Continue" }).click();
@@ -42,7 +42,7 @@ test.describe("Requester journey", () => {
   });
 
   test("cannot open another person's request", async ({ page }) => {
-    await signIn(page, "sarah.khan");
+    await signIn(page, USERS.requester);
     const reference = await submitRequest(page);
     const url = page.url();
     expect(reference).toBeTruthy();
@@ -51,13 +51,13 @@ test.describe("Requester journey", () => {
     expect(requestUrl).not.toBe(url);
 
     await page.getByRole("button", { name: "Sign out" }).click();
-    await signIn(page, "james.wright");
+    await signIn(page, USERS.otherRequester);
     await page.goto(new URL(requestUrl).pathname);
     await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
   });
 
   test("works on a small screen @mobile", async ({ page }) => {
-    await signIn(page, "james.wright");
+    await signIn(page, USERS.otherRequester);
     await expect(page.getByRole("heading", { name: "My requests" })).toBeVisible();
     const hasHorizontalScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(hasHorizontalScroll).toBe(false);

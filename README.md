@@ -13,7 +13,7 @@ This is my submission for the Band 6 Applications Developer practical exercise a
 ## Contents
 
 1. [Quick start](#1-quick-start)
-2. [Demo accounts](#2-demo-accounts)
+2. [Test accounts](#2-test-accounts)
 3. [What it does](#3-what-it-does)
 4. [Running locally without Docker](#4-running-locally-without-docker)
 5. [Database, migrations and seed data](#5-database-migrations-and-seed-data)
@@ -50,7 +50,7 @@ The first start takes a few minutes while the images build and SQL Server initia
 | **API reference** (OpenAPI, development only) | http://localhost:8080/api/docs |
 | SQL Server (for SSMS or Azure Data Studio) | `localhost,1433`, user `sa`, password `Dev_Only_Passw0rd!` |
 
-On start-up the API applies the database migrations, imports the locations, and creates the demo users and some sample requests.
+On start-up the API applies the database migrations, imports the **supplied exercise data** (locations and user accounts from `data/exercise-data.xlsx`), and creates a few sample requests so every screen has something to show.
 
 To stop it: `docker compose down`. To reset everything, including the database: `docker compose down -v`.
 
@@ -58,18 +58,18 @@ To stop it: `docker compose down`. To reset everything, including the database: 
 
 > **Port already in use?** Ports 8080, 8025 and 1433 are bound to `127.0.0.1` only. Stop whatever is using them, or change the left-hand port numbers in `docker-compose.yml`.
 
-## 2. Demo accounts
+## 2. Test accounts
 
-All demo accounts use the password **`ClinicSpace-Demo-2026`**. They are created only when `Seed__CreateDemoData=true`, which is set in the local Docker set-up only.
+The accounts come from the **Users sheet of the supplied exercise workbook**. Sign in with the **email address** as the username. Passwords are hashed (PBKDF2) when they're imported; the plain-text values are never stored.
 
-| Username | Name | Role |
+| Role | Accounts | Password |
 |---|---|---|
-| `sarah.khan` | Sarah Khan | Requester |
-| `james.wright` | James Wright | Requester |
-| `olivia.bennett` | Olivia Bennett | Administrator |
-| `daniel.okafor` | Daniel Okafor | Administrator (handy for showing two admins deciding the same request) |
+| Administrator | `pat.jones@example.nhs.uk`, `aman.singh@example.nhs.uk`, `sam.taylor@example.nhs.uk`, `jordan.brown@example.nhs.uk` | `AdminPass!23` |
+| Requester | `alex.evans@example.nhs.uk`, `riley.green@example.nhs.uk`, `morgan.wood@example.nhs.uk`, `sara.khan@example.nhs.uk`, `jamie.clarke@example.nhs.uk`, `lee.wilson@example.nhs.uk`, `casey.hughes@example.nhs.uk`, `taylor.patel@example.nhs.uk`, `drew.cooper@example.nhs.uk`, `kai.morris@example.nhs.uk` | `Password123!` |
 
-The sign-in page lists these accounts in local builds only (the `VITE_SHOW_DEMO_ACCOUNTS` build flag).
+The sample requests belong to **Alex Evans** and **Casey Hughes**, so sign in as `alex.evans@example.nhs.uk` to see a populated My Requests. Two administrator accounts make it easy to show two people deciding the same request (the second gets a conflict message).
+
+The sign-in page lists two of these accounts in local builds only (the `VITE_SHOW_DEMO_ACCOUNTS` build flag).
 
 ## 3. What it does
 
@@ -136,8 +136,14 @@ Development settings are in `backend/src/ClinicSpace.Api/appsettings.Development
     ```
   - **New migration:** `dotnet ef migrations add <Name> -p src/ClinicSpace.Infrastructure -s src/ClinicSpace.Infrastructure -o Persistence/Migrations`
 - **Seed data** (each step only runs if its table is empty, so restarts are safe):
-  - **Locations** come from `data/locations.csv` (Region, Site, Building). **The file in this repository is sample data.** To use the supplied *Practical Exercise Data* file, see [`data/README.md`](data/README.md). The importer accepts `.csv` or `.xlsx`, matches column names loosely, skips blank rows and merges duplicates. It can also be run against a live system: `docker compose run --rm api import-locations /app/data/locations.xlsx`.
-  - **Demo users and sample requests** are created when `Seed__CreateDemoData=true` (Docker only), so every screen has data to show.
+  - **Locations** come from the **Buildings** sheet of the supplied workbook, `data/exercise-data.xlsx`: 11 regions, 22 sites and 44 buildings.
+  - **Users** come from its **Users** sheet: 14 accounts (4 administrators, 10 requesters). "Admin" maps to the Administrator role, and passwords are hashed on import.
+  - The importers accept `.xlsx` or `.csv`, match column names loosely, skip blank or invalid rows (and log why), and only ever add, so re-running is safe. To run them against a live system:
+    ```bash
+    docker compose run --rm api import-locations /app/data/exercise-data.xlsx
+    docker compose run --rm api import-users /app/data/exercise-data.xlsx
+    ```
+  - **Sample requests** (6, across all three statuses) are created when `Seed__CreateDemoData=true` (Docker only), so every screen has data to show. See [`data/README.md`](data/README.md).
 
 The data model is described, with an entity relationship diagram, in [docs/DATA-MODEL.md](docs/DATA-MODEL.md).
 
@@ -153,9 +159,9 @@ Emails are written to an **outbox table in the same database transaction** as th
 
 **To demonstrate it:**
 1. `docker compose up --build`
-2. Sign in as `sarah.khan` and submit a request. A "We have received your request" email appears at http://localhost:8025.
-3. Sign out, sign in as `olivia.bennett`, open the request and **Accept** or **Reject** it.
-4. Within about 5 seconds the "has been accepted/rejected" email appears in Mailpit, addressed to Sarah, with the reference, location, time, facilities, the administrator's notes and a link back to the request.
+2. Sign in as `alex.evans@example.nhs.uk` (`Password123!`) and submit a request. A "We have received your request" email appears at http://localhost:8025.
+3. Sign out, sign in as `pat.jones@example.nhs.uk` (`AdminPass!23`), open the request and **Accept** or **Reject** it.
+4. Within about 5 seconds the "has been accepted/rejected" email appears in Mailpit, addressed to Alex, with the reference, location, time, facilities, the administrator's notes and a link back to the request.
 
 To use a real relay instead, set `Email__SmtpHost`, `Email__SmtpPort`, `Email__SmtpSecurity=StartTls`, `Email__SmtpUsername` and `Email__SmtpPassword` (from a secret store, never committed). In the Trust this would most likely be NHSmail SMTP or Microsoft Graph.
 
@@ -255,7 +261,8 @@ Where the brief left things open, I made these decisions. Each is easy to change
 | A9 | **Rejecting needs a reason**, which is shown to the requester and included in the email. Notes are optional when accepting. | `DecideRequestValidator` |
 | A10 | The requester's name and email are **copied onto the request** when it's submitted, so the record and emails stay correct if the account changes later. | `ClinicalSpaceRequest.Submit` |
 | A11 | The terms and conditions are placeholder text, versioned (`2026-11-v1`). The accepted version and time are stored with each request. | `Requests__TermsVersion` |
-| A12 | The supplied location file has Region, Site and Building columns. The repo ships with **sample data** in the same shape. | `data/README.md` |
+| A12 | The supplied workbook is the source for locations and users. The **email address is the sign-in username**, because the Users sheet has no separate username. "Admin" means Administrator. | `data/README.md`, `UserFileReader` |
+| A13 | The supplied passwords are test credentials for this exercise, so the workbook is committed as supplied. The app hashes them on import and never stores or logs the plain text. Live users would come from Microsoft Entra ID, with no passwords held by the app. | `UserImporter`, `docs/SECURITY.md` |
 
 ## 12. Design decisions and trade-offs
 

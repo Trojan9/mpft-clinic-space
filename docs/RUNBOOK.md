@@ -28,7 +28,7 @@ Every API response has an `X-Correlation-ID` header. Error responses include the
 ### A user can't sign in
 - Wrong password 5 times → **locked for 15 minutes** (by design). Check:
   ```sql
-  SELECT Username, IsActive, AccessFailedCount, LockoutEndUtc FROM Users WHERE NormalizedUsername = UPPER('sarah.khan');
+  SELECT Username, IsActive, AccessFailedCount, LockoutEndUtc FROM Users WHERE NormalizedUsername = UPPER('alex.evans@example.nhs.uk');
   ```
 - To unlock early (with the user's line manager's approval): `UPDATE Users SET LockoutEndUtc = NULL, AccessFailedCount = 0 WHERE ...`
 - `IsActive = 0` means the account was disabled on purpose.
@@ -51,10 +51,13 @@ Every API response has an `X-Correlation-ID` header. Error responses include the
 That can't happen. The second one gets "This request was changed by someone else" (HTTP 409) and must reload. The audit trail (`RequestEvents`) shows who decided, and when.
 
 ### Location missing from the drop-downs
-Locations come from the location file. Add the row to the file and run the importer. It only adds, never deletes:
+Locations come from the Buildings sheet of `data/exercise-data.xlsx` (or any CSV/XLSX with Region, Site and Building columns). Add the row and run the importer. It only adds, never deletes:
 ```bash
-docker compose run --rm api import-locations /app/data/locations.csv
+docker compose run --rm api import-locations /app/data/exercise-data.xlsx
 ```
+
+### New staff member needs an account (local set-up)
+Add a row to the Users sheet (Name, Email Address, Role, Password) and run `docker compose run --rm api import-users /app/data/exercise-data.xlsx`. Existing accounts are not changed. In live use, accounts come from Microsoft Entra ID.
 To hide a building from new requests without breaking old ones: `UPDATE Buildings SET IsActive = 0 WHERE Id = ...`.
 
 ## Releases

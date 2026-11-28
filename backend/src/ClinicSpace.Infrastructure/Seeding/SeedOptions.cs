@@ -10,11 +10,19 @@ public sealed class SeedOptions
     /// <summary>Import locations from <see cref="LocationsFile"/> when the Regions table is empty.</summary>
     public bool ImportLocations { get; set; }
 
-    public string LocationsFile { get; set; } = "data/locations.csv";
+    public string LocationsFile { get; set; } = "data/exercise-data.xlsx";
 
-    /// <summary>Create demo users and sample requests. Development and demo only.</summary>
+    /// <summary>Create accounts from <see cref="UsersFile"/> (the "Users" sheet of the supplied workbook).</summary>
+    public bool ImportUsers { get; set; }
+
+    public string UsersFile { get; set; } = "data/exercise-data.xlsx";
+
+    /// <summary>
+    /// Create sample requests so every screen has data. If no users exist (no users file), also
+    /// create four demo users with <see cref="DemoUserPassword"/>. Development and demo only.
+    /// </summary>
     public bool CreateDemoData { get; set; }
 
-    /// <summary>Password for every demo user. Must be set when CreateDemoData is true.</summary>
+    /// <summary>Password for the fallback demo users. Needed only when no users file is imported.</summary>
     public string? DemoUserPassword { get; set; }
 }

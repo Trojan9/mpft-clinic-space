@@ -35,7 +35,7 @@ export function RequestTable({ caption, requests, linkBase, showRequester = fals
           <tr key={request.id} className="mb-4 block border border-nhs-pale-grey bg-white p-4 sm:mb-0 sm:table-row sm:border-0 sm:bg-transparent sm:p-0">
             <td className={cell}>
               <span className={label}>Reference</span>
-              <Link to={`${linkBase}/${request.id}`} className="font-bold">
+              <Link to={`${linkBase}/${request.id}`} className="font-bold whitespace-nowrap">
                 {request.reference}
               </Link>
             </td>

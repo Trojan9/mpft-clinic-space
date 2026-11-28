@@ -47,9 +47,10 @@ services:
       Notifications__PublicBaseUrl: http://localhost:8080
       Seed__ApplyMigrations: "true"
       Seed__ImportLocations: "true"
-      Seed__LocationsFile: /app/data/locations.csv
-      Seed__CreateDemoData: "true"
-      Seed__DemoUserPassword: ${DEMO_USER_PASSWORD:-ClinicSpace-Demo-2026}
+      Seed__LocationsFile: /app/data/exercise-data.xlsx # The supplied exercise workbook ("Buildings" sheet)
+      Seed__ImportUsers: "true"
+      Seed__UsersFile: /app/data/exercise-data.xlsx     # ...and its "Users" sheet (passwords hashed on import)
+      Seed__CreateDemoData: "true"                      # Sample requests so every screen has data
       Security__SignInRequestsPerMinute: ${SIGN_IN_REQUESTS_PER_MINUTE:-10}
       DataProtection__KeysDirectory: /app/keys
     volumes:

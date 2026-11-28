@@ -25,6 +25,10 @@ This service would hold staff names, email addresses, cost codes and booking det
 - **Retention**: not defined by the brief. In production, agree a retention period with Information Governance and add a scheduled purge or anonymisation of old requests and sent emails.
 - **Emails** contain booking details only, nothing clinical. Use NHSmail (encrypted in transit) in production.
 
+## Supplied test credentials
+
+The exercise workbook (`data/exercise-data.xlsx`) contains plain-text passwords for its test accounts. It's committed unchanged so reviewers can run the app as supplied. The importer hashes each password with PBKDF2 before saving and never logs it. A real deployment would have no password file: identities and roles would come from Microsoft Entra ID.
+
 ## Known limitations and production checklist
 
 | Item | Status here | Production action |

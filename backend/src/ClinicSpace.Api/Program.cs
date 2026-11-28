@@ -8,6 +8,7 @@ using ClinicSpace.Infrastructure;
 using ClinicSpace.Infrastructure.Locations;
 using ClinicSpace.Infrastructure.Persistence;
 using ClinicSpace.Infrastructure.Seeding;
+using ClinicSpace.Infrastructure.Users;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
@@ -82,14 +83,26 @@ if (security.TrustForwardedHeaders)
 
 var app = builder.Build();
 
-// ---- One-off command: import locations from a file, then exit ------------------------------
-// Usage: dotnet ClinicSpace.Api.dll import-locations path/to/locations.xlsx
-if (args.Length >= 2 && args[0] == "import-locations")
+// ---- One-off commands: import data from a file, then exit -----------------------------------
+// Usage: dotnet ClinicSpace.Api.dll import-locations data/exercise-data.xlsx
+//        dotnet ClinicSpace.Api.dll import-users data/exercise-data.xlsx
+if (args.Length >= 2 && args[0] is "import-locations" or "import-users")
 {
     await using var scope = app.Services.CreateAsyncScope();
-    var importer = scope.ServiceProvider.GetRequiredService<LocationImporter>();
-    var result = await importer.ImportAsync(LocationFileReader.Read(args[1]), CancellationToken.None);
-    Console.WriteLine($"Imported from {args[1]}: {result.RegionsAdded} regions, {result.SitesAdded} sites, {result.BuildingsAdded} buildings ({result.RowsRead} rows).");
+    if (args[0] == "import-locations")
+    {
+        var importer = scope.ServiceProvider.GetRequiredService<LocationImporter>();
+        var result = await importer.ImportAsync(LocationFileReader.Read(args[1]), CancellationToken.None);
+        Console.WriteLine($"Imported from {args[1]}: {result.RegionsAdded} regions, {result.SitesAdded} sites, {result.BuildingsAdded} buildings ({result.RowsRead} rows).");
+    }
+    else
+    {
+        var (users, problems) = UserFileReader.Read(args[1]);
+        problems.ToList().ForEach(p => Console.WriteLine($"Skipped: {p}"));
+        var result = await scope.ServiceProvider.GetRequiredService<UserImporter>().ImportAsync(users, problems.Count, CancellationToken.None);
+        Console.WriteLine($"Imported from {args[1]}: {result.Added} users added, {result.AlreadyExisted} already existed, {result.Skipped} skipped.");
+    }
+
     return;
 }
 
